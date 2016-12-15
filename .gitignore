@@ -3,3 +3,6 @@ target
 dependency-reduced-pom.xml
 *.iml
 /bin/
+.settings/
+.classpath
+.project
