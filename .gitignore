@@ -6,4 +6,4 @@ dependency-reduced-pom.xml
 .settings/
 .classpath
 .project
-profiler.conf
+.profiler.conf
