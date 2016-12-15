@@ -1,10 +1,10 @@
 package com.etsy.statsd.profiler;
 
-import com.etsy.statsd.profiler.reporter.Reporter;
-import com.google.common.base.Preconditions;
-
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import com.etsy.statsd.profiler.reporter.Reporter;
+import com.google.common.base.Preconditions;
 
 /**
  * Interface for profilers
@@ -12,88 +12,92 @@ import java.util.concurrent.TimeUnit;
  * @author Andrew Johnson
  */
 public abstract class Profiler {
-    public static final Class<?>[] CONSTRUCTOR_PARAM_TYPES = new Class<?>[]{Reporter.class, Arguments.class};
+	public static final Class<?>[] CONSTRUCTOR_PARAM_TYPES = new Class<?>[] { Reporter.class,
+			Arguments.class };
 
-    private final Reporter<?> reporter;
+	private final Reporter<?> reporter;
 
-    private long recordedStats = 0;
-    public Profiler(Reporter reporter, Arguments arguments) {
-        Preconditions.checkNotNull(reporter);
-        this.reporter = reporter;
-        handleArguments(arguments);
-    }
+	private long recordedStats = 0;
 
-    /**
-     * Perform profiling
-     */
-    public abstract void profile();
+	public Profiler(Reporter reporter, Arguments arguments) {
+		Preconditions.checkNotNull(reporter);
+		this.reporter = reporter;
+		handleArguments(arguments);
+	}
 
-    /**
-     * Hook to flush any remaining data cached by the profiler at JVM shutdown
-     */
-    public abstract void flushData();
+	/**
+	 * Perform profiling
+	 */
+	public abstract void profile();
 
-    /**
-     * Get the period to use for this profiler in the ScheduledExecutorService
-     *
-     * @return The ScheduledExecutorThread period for this profiler
-     */
-    public abstract long getPeriod();
+	/**
+	 * Hook to flush any remaining data cached by the profiler at JVM shutdown
+	 */
+	public abstract void flushData();
 
-    /**
-     * Get the unit of time that corresponds to the period for this profiler
-     *
-     * @return A TimeUnit corresponding the the period for this profiler
-     */
-    public abstract TimeUnit getTimeUnit();
+	/**
+	 * Get the period to use for this profiler in the ScheduledExecutorService
+	 *
+	 * @return The ScheduledExecutorThread period for this profiler
+	 */
+	public abstract long getPeriod();
 
-    /**
-     * CPUTracingProfiler can emit some metrics that indicate the upper and lower bound on the length of stack traces
-     * This is helpful for querying this data for some backends (such as Graphite) that do not have rich query languages
-     * Reporters can override this to disable these metrics
-     *
-     * @return true if the bounds metrics should be emitted, false otherwise
-     */
-    protected boolean emitBounds() {
-        return reporter.emitBounds();
-    }
+	/**
+	 * Get the unit of time that corresponds to the period for this profiler
+	 *
+	 * @return A TimeUnit corresponding the the period for this profiler
+	 */
+	public abstract TimeUnit getTimeUnit();
 
-    /**
-     * Handle any additional arguments necessary for this profiler
-     *
-     * @param arguments The arguments given to the profiler
-     */
-    protected abstract void handleArguments(Arguments arguments);
+	/**
+	 * CPUTracingProfiler can emit some metrics that indicate the upper and lower bound on the length of stack traces
+	 * This is helpful for querying this data for some backends (such as Graphite) that do not have rich query languages
+	 * Reporters can override this to disable these metrics
+	 *
+	 * @return true if the bounds metrics should be emitted, false otherwise
+	 */
+	protected boolean emitBounds() {
+		return reporter.emitBounds();
+	}
 
-    /**
-     * Record a gauge value
-     *
-     * @param key The key for the gauge
-     * @param value The value of the gauge
-     */
-    protected void recordGaugeValue(String key, long value) {
-        recordedStats++;
-        reporter.recordGaugeValue(key, value);
-    }
+	/**
+	 * Handle any additional arguments necessary for this profiler
+	 *
+	 * @param arguments The arguments given to the profiler
+	 */
+	protected abstract void handleArguments(Arguments arguments);
 
-    /**
-     * @see #recordGaugeValue(String, long)
-     */
-    protected void recordGaugeValue(String key, double value) {
-        recordedStats++;
-        reporter.recordGaugeValue(key, value);
-    }
+	/**
+	 * Record a gauge value
+	 *
+	 * @param key The key for the gauge
+	 * @param value The value of the gauge
+	 */
+	protected void recordGaugeValue(String key, long value) {
+		recordedStats++;
+		reporter.recordGaugeValue(key, value);
+	}
 
-    /**
-     * Record multiple gauge values
-     * This is useful for reporters that can send points in batch
-     *
-     * @param gauges A map of gauge names to values
-     */
-    protected void recordGaugeValues(Map<String, ? extends Number> gauges) {
-        recordedStats++;
-        reporter.recordGaugeValues(gauges);
-    }
+	/**
+	 * @see #recordGaugeValue(String, long)
+	 */
+	protected void recordGaugeValue(String key, double value) {
+		recordedStats++;
+		reporter.recordGaugeValue(key, value);
+	}
 
-    public long getRecordedStats() { return recordedStats; }
+	/**
+	 * Record multiple gauge values
+	 * This is useful for reporters that can send points in batch
+	 *
+	 * @param gauges A map of gauge names to values
+	 */
+	protected void recordGaugeValues(Map<String, ? extends Number> gauges) {
+		recordedStats++;
+		reporter.recordGaugeValues(gauges);
+	}
+
+	public long getRecordedStats() {
+		return recordedStats;
+	}
 }
