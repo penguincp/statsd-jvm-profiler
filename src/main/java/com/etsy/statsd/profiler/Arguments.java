@@ -15,6 +15,7 @@ import com.etsy.statsd.profiler.profilers.MemoryProfiler;
 import com.etsy.statsd.profiler.reporter.Reporter;
 import com.etsy.statsd.profiler.reporter.StatsDReporter;
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
@@ -82,7 +83,7 @@ public final class Arguments {
 			Set<Entry<String, ConfigValue>> entries = config.entrySet();
 			for (Entry<String, ConfigValue> entry : entries) {
 				if (!this.parsedArgs.containsKey(entry.getKey())) {
-					System.out.println(entry.getKey() + ":" + entry.getValue());
+					//					System.out.println(entry.getKey() + ":" + entry.getValue());
 					this.parsedArgs.put(entry.getKey(), entry.getValue().unwrapped());
 				}
 			}
@@ -104,6 +105,29 @@ public final class Arguments {
 			return Integer.parseInt(value.toString());
 		}
 		return -1;
+	}
+
+	public List<Map> getListArguments(String key) {
+		Object value = parsedArgs.get(key);
+		if (value != null) {
+			return (List<Map>) value;
+			//			if (value instanceof List) {
+			//				return (String[]) ((List) value).toArray(new String[0]);
+			//			}
+			//
+			//			if (value.getClass().isArray()) {
+			//				Object[] objValues = (Object[]) value;
+			//				return Arrays.asList(objValues).toArray(new String[objValues.length]);
+			//			}
+			//			String valueStr = value.toString();
+			//			if (valueStr.contains(":")) {
+			//				return valueStr.split(":");
+			//			}
+			//			return new String[] { valueStr };
+
+		}
+
+		return Lists.newArrayList();
 	}
 
 	public String[] getStringListArguments(String key) {

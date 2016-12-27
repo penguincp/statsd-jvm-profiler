@@ -1,6 +1,8 @@
 package com.etsy.statsd.profiler.util;
 
 import java.lang.management.ManagementFactory;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -24,7 +26,9 @@ public final class TagUtil {
 	static {
 		TAG_SEPARATOR_SB.append(",");
 		final String jvmName = ManagementFactory.getRuntimeMXBean().getName();
-		TAG_SEPARATOR_SB.append(PID_TAG + "=" + jvmName);
+		Date today = new Date();
+		SimpleDateFormat formatter = new SimpleDateFormat("MMdd");
+		TAG_SEPARATOR_SB.append(PID_TAG + "=" + jvmName + "_" + formatter.format(today));
 		TAG_SEPARATOR_SB.append(",type=");
 	}
 
