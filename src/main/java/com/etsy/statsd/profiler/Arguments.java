@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.etsy.statsd.profiler.profilers.CPUTracingProfiler;
 import com.etsy.statsd.profiler.profilers.MemoryProfiler;
 import com.etsy.statsd.profiler.reporter.Reporter;
 import com.etsy.statsd.profiler.reporter.StatsDReporter;
@@ -82,13 +81,18 @@ public final class Arguments {
 			}
 			Set<Entry<String, ConfigValue>> entries = config.entrySet();
 			for (Entry<String, ConfigValue> entry : entries) {
+				//arguments defined in the commandline will supercede arguments defined in the conf file 
 				if (!this.parsedArgs.containsKey(entry.getKey())) {
-					//					System.out.println(entry.getKey() + ":" + entry.getValue());
 					this.parsedArgs.put(entry.getKey(), entry.getValue().unwrapped());
 				}
 			}
 		}
+	}
 
+	public void mergeArguments(Map newArgs) {
+		if (newArgs != null && newArgs.size() > 0) {
+			this.parsedArgs.putAll(newArgs);
+		}
 	}
 
 	public String getStringArgument(String key) {
@@ -183,17 +187,16 @@ public final class Arguments {
 	private static Set<Class<? extends Profiler>> parseProfilerArg(String profilerArg) {
 		Set<Class<? extends Profiler>> parsedProfilers = new HashSet<>();
 		if (profilerArg == null) {
-			parsedProfilers.add(CPUTracingProfiler.class);
 			parsedProfilers.add(MemoryProfiler.class);
 		} else {
 			for (String p : profilerArg.split(":")) {
 				try {
-					parsedProfilers.add((Class<? extends Profiler>) Class.forName(p));
+					parsedProfilers.add((Class<? extends Profiler>) Class
+							.forName("com.etsy.statsd.profiler.profilers." + p));
 				} catch (ClassNotFoundException e) {
 					// This might indicate the package was left off, so we'll try with the default package
 					try {
-						parsedProfilers.add((Class<? extends Profiler>) Class
-								.forName("com.etsy.statsd.profiler.profilers." + p));
+						parsedProfilers.add((Class<? extends Profiler>) Class.forName(p));
 					} catch (ClassNotFoundException inner) {
 						throw new IllegalArgumentException("Profiler " + p + " not found", inner);
 					}

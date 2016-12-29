@@ -24,6 +24,8 @@ public class GeneralMBeanProfiler extends Profiler {
 		String[] attributes = new String[0];
 	}
 
+	private int period = 10;
+
 	public GeneralMBeanProfiler(Reporter reporter, Arguments arguments) {
 		super(reporter, arguments);
 
@@ -42,9 +44,15 @@ public class GeneralMBeanProfiler extends Profiler {
 			beans[i] = bean;
 		}
 
-	}
+		this.period = arguments.getIntArgument("GeneralMBeanProfiler-period");
+		if (this.period == -1) {
+			this.period = arguments.getIntArgument("period");
+		}
+		if (this.period == -1) {
+			this.period = 10;
+		}
 
-	public static final long PERIOD = 10;
+	}
 
 	@Override
 	public void profile() {
@@ -59,7 +67,7 @@ public class GeneralMBeanProfiler extends Profiler {
 
 	@Override
 	public long getPeriod() {
-		return PERIOD;
+		return this.period;
 	}
 
 	@Override

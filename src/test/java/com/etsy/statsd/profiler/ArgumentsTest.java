@@ -93,7 +93,6 @@ public class ArgumentsTest {
 		Arguments arguments = Arguments.parseArgs(args);
 
 		Set<Class<? extends Profiler>> expected = new HashSet<>();
-		expected.add(CPUTracingProfiler.class);
 		expected.add(MemoryProfiler.class);
 
 		assertEquals(expected, arguments.profilers);

@@ -34,7 +34,7 @@ class InfluxDBDump:
         ret=self.client.query(query)
         if len(ret)==0:
             raise Exception("no data found!")
-        
+
         metrics = ret.raw["series"][0]["values"]
         map={}
         for metric in metrics:

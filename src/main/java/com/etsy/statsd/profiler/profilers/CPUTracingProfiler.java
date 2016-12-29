@@ -33,7 +33,7 @@ public class CPUTracingProfiler extends Profiler {
 	private static final String PACKAGE_BLACKLIST_ARG = "packageBlacklist";
 
 	public static final long REPORTING_PERIOD = 1;
-	public static final long PERIOD = 10;
+	private int period = 10;
 	public static final List<String> EXCLUDE_PACKAGES = Arrays.asList("com.etsy.statsd.profiler",
 			"com.timgroup.statsd");
 
@@ -48,6 +48,13 @@ public class CPUTracingProfiler extends Profiler {
 		profileCount = 0;
 		reportingFrequency = TimeUtil.convertReportingPeriod(getPeriod(), getTimeUnit(),
 				REPORTING_PERIOD, TimeUnit.SECONDS);
+		this.period = arguments.getIntArgument("CPUTracingProfiler-period");
+		if (this.period == -1) {
+			this.period = arguments.getIntArgument("period");
+		}
+		if (this.period == -1) {
+			this.period = 10;
+		}
 	}
 
 	/**
@@ -91,7 +98,7 @@ public class CPUTracingProfiler extends Profiler {
 
 	@Override
 	public long getPeriod() {
-		return PERIOD;
+		return period;
 	}
 
 	@Override

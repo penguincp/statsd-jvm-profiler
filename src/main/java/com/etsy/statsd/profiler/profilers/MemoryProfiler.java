@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
  * @author Andrew Johnson
  */
 public class MemoryProfiler extends Profiler {
-	public static final long PERIOD = 10;
+	private long period = 10;
 
 	private final MemoryMXBean memoryMXBean;
 	private final List<GarbageCollectorMXBean> gcMXBeans;
@@ -41,6 +41,15 @@ public class MemoryProfiler extends Profiler {
 		for (GarbageCollectorMXBean b : gcMXBeans) {
 			gcTimes.put(b, new AtomicLong());
 		}
+
+		this.period = arguments.getIntArgument("MemoryProfiler-period");
+		if (this.period == -1) {
+			this.period = arguments.getIntArgument("period");
+		}
+		if (this.period == -1) {
+			this.period = 10;
+		}
+
 	}
 
 	/**
@@ -58,7 +67,7 @@ public class MemoryProfiler extends Profiler {
 
 	@Override
 	public long getPeriod() {
-		return PERIOD;
+		return period;
 	}
 
 	@Override
