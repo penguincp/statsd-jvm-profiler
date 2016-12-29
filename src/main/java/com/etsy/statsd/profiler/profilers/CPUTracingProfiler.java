@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.etsy.statsd.profiler.Arguments;
@@ -14,6 +15,7 @@ import com.etsy.statsd.profiler.util.CPUTraces;
 import com.etsy.statsd.profiler.util.Range;
 import com.etsy.statsd.profiler.util.StackTraceFilter;
 import com.etsy.statsd.profiler.util.StackTraceFormatter;
+import com.etsy.statsd.profiler.util.TagUtil;
 import com.etsy.statsd.profiler.util.ThreadDumper;
 import com.etsy.statsd.profiler.util.TimeUtil;
 import com.etsy.statsd.profiler.worker.ProfilerThreadFactory;
@@ -60,6 +62,7 @@ public class CPUTracingProfiler extends Profiler {
 			if (thread.getStackTrace().length > 0) {
 				String traceKey = StackTraceFormatter.formatStackTrace(thread.getStackTrace());
 				if (filter.includeStackTrace(traceKey)) {
+					traceKey = "cpu.trace" + TagUtil.TAG_SEPARATOR_SB + traceKey;
 					traces.increment(traceKey, 1);
 				}
 			}
@@ -124,7 +127,10 @@ public class CPUTracingProfiler extends Profiler {
 	 * Records method CPU time in StatsD
 	 */
 	private void recordMethodCounts() {
-		recordGaugeValues(traces.getDataToFlush());
+		Map<String, Number> data = traces.getDataToFlush();
+		if (data.size() > 0) {
+			recordGaugeValues(data);
+		}
 	}
 
 	/**

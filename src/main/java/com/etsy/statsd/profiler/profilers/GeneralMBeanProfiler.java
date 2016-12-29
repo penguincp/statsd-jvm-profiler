@@ -42,11 +42,6 @@ public class GeneralMBeanProfiler extends Profiler {
 			beans[i] = bean;
 		}
 
-		//		String[] sessionAttrs = arguments.getStringListArguments("tomcat.sessionAttributes");
-		//		if (sessionAttrs.length > 0) {
-		//			this.attributes = sessionAttrs;
-		//		}
-
 	}
 
 	public static final long PERIOD = 10;
@@ -94,8 +89,7 @@ public class GeneralMBeanProfiler extends Profiler {
 				for (String sessionAtt : sessionBean1.attributes) {
 					Object sessionValue = ManagementFactory.getPlatformMBeanServer()
 							.getAttribute(beanName, sessionAtt);
-					//					String path = sessionBean1.substring(sessionBean1.indexOf('/') + 1,
-					//							sessionBean1.indexOf(",host"));
+
 					Long value = new Long(sessionValue.toString());
 					if (value > 0) {
 						metrics.put(sessionBean1.metricName + TagUtil.TAG_SEPARATOR_SB + sessionAtt,

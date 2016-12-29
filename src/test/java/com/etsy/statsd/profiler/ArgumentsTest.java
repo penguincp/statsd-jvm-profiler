@@ -24,7 +24,7 @@ public class ArgumentsTest {
 
 	@Test
 	public void testConfFileArgument() {
-		String args = "conf=com/etsy/statsd/profiler/configTest.conf,tomcat.sessionAttributes=attr3:attr4,server=localhost,port=8125";
+		String args = "conf=com/etsy/statsd/profiler/configTest.conf";
 		//		String args = "conf=C:\\devops\\explore\\statsd-jvm-profiler\\src\\test\\java\\com\\etsy\\statsd\\profiler\\configTest.conf,tomcat.sessionAttributes=attr3:attr4,server=localhost,port=8125";
 
 		Arguments arguments = Arguments.parseArgs(args);

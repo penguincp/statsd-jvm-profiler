@@ -8,3 +8,7 @@ dependency-reduced-pom.xml
 .project
 .profiler.conf
 profiler.conf
+*.pl
+*.svg
+
+visualization/*.txt

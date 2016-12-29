@@ -19,7 +19,7 @@ public class SimpleApp {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				System.out.println(objects);
+				//				System.out.println(objects);
 
 			}
 

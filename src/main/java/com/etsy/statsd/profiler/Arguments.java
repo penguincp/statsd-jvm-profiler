@@ -111,20 +111,6 @@ public final class Arguments {
 		Object value = parsedArgs.get(key);
 		if (value != null) {
 			return (List<Map>) value;
-			//			if (value instanceof List) {
-			//				return (String[]) ((List) value).toArray(new String[0]);
-			//			}
-			//
-			//			if (value.getClass().isArray()) {
-			//				Object[] objValues = (Object[]) value;
-			//				return Arrays.asList(objValues).toArray(new String[objValues.length]);
-			//			}
-			//			String valueStr = value.toString();
-			//			if (valueStr.contains(":")) {
-			//				return valueStr.split(":");
-			//			}
-			//			return new String[] { valueStr };
-
 		}
 
 		return Lists.newArrayList();
