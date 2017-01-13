@@ -4,7 +4,7 @@ from influxdb import InfluxDBClient
 import sys
 
 class InfluxDBDump:
-    def __init__(self, host, port, username, password, database, prefix, begin, end):
+    def __init__(self, host, port, username, password, database, prefix, begin, end, tagmapping):
         self.host = host
         self.port = port
         self.username = username
@@ -13,7 +13,7 @@ class InfluxDBDump:
         self.prefix = prefix
         # self.tag_mapping = tag_mapping
         self.client = InfluxDBClient(self.host, self.port, self.username, self.password, self.database)
-        # self.mapped_tags = self._construct_tag_mapping(prefix, tag_mapping)
+        self.tag_mapping = self._construct_tag_mapping(prefix, tagmapping)
         self.prefix=prefix
         self.begin=begin
         self.end=end
@@ -23,13 +23,23 @@ class InfluxDBDump:
         # clauses = ["%s ='%s'" % (tag, value) for (tag, value) in self.mapped_tags.items()]
         measurement_name=self.prefix+"_cpu_trace"
         query = 'select type, value from /'+measurement_name+'/' #where %s' % " and ".join(clauses)
+        whereExists=False
         if self.begin:
             query= query + " where time>='"+self.begin+"'"
+            whereExists=True
         if self.end:
-            if self.begin:
+            if whereExists:
                 query= query + " and time<'"+self.end+"'"
             else:
                 query = query + " where time<'"+self.end+"'"
+                whereExists=True
+
+        if len(self.tag_mapping)>0:
+            clauses = ["%s ='%s'" % (tag, value) for (tag, value) in self.tag_mapping.items()]
+            if whereExists:
+                query=query+ ' and %s' % " and ".join(clauses)
+            else:
+                query= query + ' where %s' % " and ".join(clauses)
 
         ret=self.client.query(query)
         if len(ret)==0:
@@ -59,17 +69,10 @@ class InfluxDBDump:
     def _construct_tag_mapping(self, prefix, tag_mapping):
         mapped_tags = {}
         if tag_mapping:
-            tag_names = tag_mapping.split('.')
-            prefix_components = prefix.split('.')
-            if len(tag_names) != len(prefix_components):
-                raise Exception('Invalid tag mapping %s' % tag_mapping)
-
-            zipped = zip(tag_names, prefix_components)
-            for entry in zipped:
-                if entry[0] != 'SKIP':
-                    mapped_tags[entry[0]] = entry[1]
-        else:
-            mapped_tags['prefix'] = prefix
+            tags = tag_mapping.split(',')
+            for tag in tags:
+                keyAndValue=tag.split('=')
+                mapped_tags[keyAndValue[0]] = keyAndValue[1]
 
         return mapped_tags
 
@@ -84,8 +87,7 @@ def get_arg_parser():
     parser.add_option('-e', '--prefix', dest='prefix', help='Metric prefix', metavar='PREFIX')
     parser.add_option('-b', '--begin', dest='begin', help='Data points equal or after this time will be fetched, format is YYYY-MM-DDTHH:MM:SSZ', metavar='PREFIX')
     parser.add_option('-n', '--end', dest='end', help='Data points before this time will be fetched, format is YYYY-MM-DDTHH:MM:SSZ', metavar='PREFIX')
-
-    # parser.add_option('-t', '--tag-mapping', dest='mapping', help='Tag mapping for metric prefix', metavar='MAPPING')
+    parser.add_option('-t', '--tagmapping', dest='tagmapping', help='Tag mapping for metric prefix', metavar='MAPPING')
 
     return parser
 
@@ -97,6 +99,6 @@ if __name__ == '__main__':
         sys.exit(255)
     port = args.port or 8086
     # tag_mapping = args.mapping or None
-    dumper = InfluxDBDump(args.host, port, args.username, args.password, args.database, args.prefix, args.begin, args.end)
+    dumper = InfluxDBDump(args.host, port, args.username, args.password, args.database, args.prefix, args.begin, args.end, args.tagmapping)
     dumper.run()
 
