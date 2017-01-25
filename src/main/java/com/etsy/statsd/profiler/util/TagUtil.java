@@ -4,6 +4,7 @@ import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 
 import com.google.common.collect.Maps;
 
@@ -27,7 +28,8 @@ public final class TagUtil {
 		TAG_SEPARATOR_SB.append(",");
 		final String jvmName = ManagementFactory.getRuntimeMXBean().getName();
 		Date today = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat("MMdd");
+		SimpleDateFormat formatter = new SimpleDateFormat("MMdd'T'HH");
+		formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 		TAG_SEPARATOR_SB.append(PID_TAG + "=" + jvmName + "_" + formatter.format(today));
 		TAG_SEPARATOR_SB.append(",type=");
 	}

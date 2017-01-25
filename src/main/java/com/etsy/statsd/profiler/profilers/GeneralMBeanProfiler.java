@@ -83,33 +83,33 @@ public class GeneralMBeanProfiler extends Profiler {
 	private void recordStats() {
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		Map<String, Long> metrics = Maps.newHashMap();
-		getSessionMetrics(mbs, metrics);
+		getMBeanMetrics(mbs, metrics);
 
 		if (metrics.size() > 0) {
 			recordGaugeValues(metrics);
 		}
 	}
 
-	private void getSessionMetrics(MBeanServer mBeanServer, Map<String, Long> metrics) {
-		try {
-			for (MBeanAttr sessionBean1 : beans) {
-				ObjectName beanName = new ObjectName(sessionBean1.name);
-				for (String sessionAtt : sessionBean1.attributes) {
-					Object sessionValue = ManagementFactory.getPlatformMBeanServer()
-							.getAttribute(beanName, sessionAtt);
+	private void getMBeanMetrics(MBeanServer mBeanServer, Map<String, Long> metrics) {
+		for (MBeanAttr bean : beans) {
+			try {
+				ObjectName beanName = new ObjectName(bean.name);
+				for (String attr : bean.attributes) {
 
-					Long value = new Long(sessionValue.toString());
+					Object attrValue = ManagementFactory.getPlatformMBeanServer()
+							.getAttribute(beanName, attr);
+
+					Long value = new Long(attrValue.toString());
 					if (value > 0) {
-						metrics.put(sessionBean1.metricName + TagUtil.TAG_SEPARATOR_SB + sessionAtt,
-								new Long(sessionValue.toString()));
+						metrics.put(bean.metricName + TagUtil.TAG_SEPARATOR_SB + attr,
+								new Long(attrValue.toString()));
 					}
 				}
+			} catch (Exception e) {
+				System.out.println(e.toString());
+				//			e.printStackTrace();
 			}
-
-		} catch (Exception e) {
-			System.out.println(e.toString());
-			//			e.printStackTrace();
 		}
-	}
 
+	}
 }
