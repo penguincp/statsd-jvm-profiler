@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.etsy.statsd.profiler.reporter.Reporter;
@@ -92,7 +93,7 @@ public final class Agent {
 
 		if (arguments.httpServerEnabled) {
 			ProfilerServer.startServer(scheduledExecutorService, runningProfilers, activeProfilers,
-					arguments.httpPort, isRunning, errors);
+					new AtomicInteger(arguments.httpPort), isRunning, errors);
 		}
 	}
 
@@ -148,7 +149,7 @@ public final class Agent {
 	 *
 	 * @param clazz A Class representing the type of object to instantiate
 	 * @param parameterTypes The parameter types for the constructor
-	 * @param initArgs The values to pass to the constructor
+	 * @param initArgs The values to pass to the constProfiler server started on portructor
 	 * @param <T> The type of the object to instantiate
 	 * @return A new instance of type T
 	 */

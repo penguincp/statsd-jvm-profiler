@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
@@ -31,22 +32,25 @@ public final class ProfilerServer {
 	 * Start an embedded HTTP server
 	 *
 	 * @param activeProfilers The active profilers
-	 * @param port The port on which to bind the server
+	 * @param portHolder The port on which to bind the server, it is a AtomicInteger,
+	 *                   because in case of port already occupied, this method will try port+1 until it succeeds, test cases need to know the port that finally succeeds
 	 */
 	public static void startServer(final ScheduledExecutorService scheduledExecutorService,
 			final Map<String, ScheduledFuture<?>> runningProfilers,
-			final Map<String, Profiler> activeProfilers, final int port,
+			final Map<String, Profiler> activeProfilers, final AtomicInteger portHolder,
 			final AtomicReference<Boolean> isRunning, final List<String> errors) {
 		final HttpServer server = VERTX.createHttpServer();
 		server.requestHandler(RequestHandler.getMatcher(scheduledExecutorService, runningProfilers,
 				activeProfilers, isRunning, errors));
+		final int port=portHolder.get();
 		server.listen(port, new Handler<AsyncResult<HttpServer>>() {
 			@Override
 			public void handle(AsyncResult<HttpServer> event) {
 				if (event.failed()) {
 					server.close();
+					portHolder.set(port+1);
 					startServer(scheduledExecutorService, runningProfilers, activeProfilers,
-							port + 1, isRunning, errors);
+							portHolder, isRunning, errors);
 				} else if (event.succeeded()) {
 					LOGGER.info("Profiler server started on port " + port);
 				}

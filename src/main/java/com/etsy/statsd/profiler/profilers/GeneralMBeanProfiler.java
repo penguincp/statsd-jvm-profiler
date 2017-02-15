@@ -17,11 +17,13 @@ import com.google.common.collect.Maps;
 public class GeneralMBeanProfiler extends Profiler {
 
 	private MBeanAttr[] beans;
+	private Map<String, Long> metricValues = Maps.newHashMap();
 
 	static class MBeanAttr {
 		String name;
 		String metricName;
 		String[] attributes = new String[0];
+		Algorithm algo = null;
 	}
 
 	private int period = 10;
@@ -40,6 +42,21 @@ public class GeneralMBeanProfiler extends Profiler {
 			bean.name = (String) beanArg.get("name");
 			bean.metricName = (String) beanArg.get("metric");
 			bean.attributes = (String[]) ((List) beanArg.get("attributes")).toArray(new String[0]);
+			String algoClsName = (String) beanArg.get("algo");
+			if (algoClsName != null) {
+				try {
+					Class<? extends Algorithm> algoClass = (Class<? extends Algorithm>) Class
+							.forName(algoClsName);
+					bean.algo = algoClass.newInstance();
+					for (String attriName : bean.attributes) {
+						metricValues.put(this.metricKey(bean.name, attriName), 0L);
+					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			}
 
 			beans[i] = bean;
 		}
@@ -80,17 +97,21 @@ public class GeneralMBeanProfiler extends Profiler {
 
 	}
 
+	private String metricKey(String beanName, String attriName) {
+		return beanName + "_" + attriName;
+	}
+
 	private void recordStats() {
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-		Map<String, Long> metrics = Maps.newHashMap();
-		getMBeanMetrics(mbs, metrics);
+		Map<String, Long> newBatchMetrics = Maps.newHashMap();
+		getMBeanMetrics(mbs, newBatchMetrics);
 
-		if (metrics.size() > 0) {
-			recordGaugeValues(metrics);
+		if (newBatchMetrics.size() > 0) {
+			recordGaugeValues(newBatchMetrics);
 		}
 	}
 
-	private void getMBeanMetrics(MBeanServer mBeanServer, Map<String, Long> metrics) {
+	private void getMBeanMetrics(MBeanServer mBeanServer, Map<String, Long> newBatchMetrics) {
 		for (MBeanAttr bean : beans) {
 			try {
 				ObjectName beanName = new ObjectName(bean.name);
@@ -98,11 +119,16 @@ public class GeneralMBeanProfiler extends Profiler {
 
 					Object attrValue = ManagementFactory.getPlatformMBeanServer()
 							.getAttribute(beanName, attr);
+					Long newValue = new Long(attrValue.toString());
 
-					Long value = new Long(attrValue.toString());
-					if (value > 0) {
-						metrics.put(bean.metricName + TagUtil.TAG_SEPARATOR_SB + attr,
-								new Long(attrValue.toString()));
+					if (bean.algo != null) {
+						newValue = bean.algo.doAlgorithm(metricValues,
+								this.metricKey(bean.name, attr), newValue);
+					}
+
+					if (newValue > 0) {
+						newBatchMetrics.put(bean.metricName + TagUtil.TAG_SEPARATOR_SB + attr,
+								new Long(newValue.toString()));
 					}
 				}
 			} catch (Exception e) {

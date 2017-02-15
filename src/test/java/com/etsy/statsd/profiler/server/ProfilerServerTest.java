@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.HttpEntity;
@@ -23,6 +24,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.etsy.statsd.profiler.Profiler;
@@ -34,14 +36,14 @@ import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.MoreExecutors;
 
 public class ProfilerServerTest {
-	private Map<String, Profiler> activeProfilers;
-	private int port;
-	private AtomicReference<Boolean> isRunning;
-	private List<String> errors;
-	private CloseableHttpClient client;
+	private static Map<String, Profiler> activeProfilers;
+	private static AtomicInteger port;
+	private static AtomicReference<Boolean> isRunning;
+	private static List<String> errors;
+	private static CloseableHttpClient client;
 
-	@Before
-	public void setup() throws IOException {
+	@BeforeClass
+	public static void setup() throws IOException {
 		MockProfiler1 profiler1 = new MockProfiler1(new HashSet<String>());
 		MockProfiler2 profiler2 = new MockProfiler2(new HashSet<String>());
 
@@ -49,7 +51,7 @@ public class ProfilerServerTest {
 		activeProfilers.put("MockProfiler1", profiler1);
 		activeProfilers.put("MockProfiler2", profiler2);
 
-		port = 8080;
+		port = new AtomicInteger(8080);
 
 		isRunning = new AtomicReference<>(true);
 		errors = new ArrayList<>();
@@ -71,6 +73,8 @@ public class ProfilerServerTest {
 		ProfilerServer.startServer(scheduledExecutorService, runningProfilers, activeProfilers,
 				port, isRunning, errors);
 		client = HttpClients.createDefault();
+
+
 	}
 
 	@Test
@@ -112,7 +116,7 @@ public class ProfilerServerTest {
 	}
 
 	private void httpRequestTest(String path, String expectedBody) throws IOException {
-		HttpRequestBase get = new HttpGet(String.format("http://localhost:%d/%s", port, path));
+		HttpRequestBase get = new HttpGet(String.format("http://localhost:%d/%s", port.get(), path));
 		CloseableHttpResponse response = client.execute(get);
 
 		int statusCode = response.getStatusLine().getStatusCode();
